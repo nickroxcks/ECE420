@@ -133,11 +133,9 @@ int main(int argc, char** argv)
 {   
     double start_time,end_time;
     numthreads = atoi(argv[1]);
-    //printf("Number of args are: %d number of threads are: %d\n",argc, numthreads);
     pthread_t tid[numthreads]; /* array of thread IDs */
 
     Lab1_loadinput(&A,&B,&n);
-    //printf("n is: %d",n);
     C = malloc(n * sizeof(int*));
 
     for (int i = 0; i < n; i++)
@@ -161,11 +159,8 @@ int main(int argc, char** argv)
     }
     GET_TIME(end_time);
 
-    fprintf(stdout,"we passed the multiplications\n");
-
     Time = end_time - start_time;
     Lab1_saveoutput(C,&n,Time);
-    fprintf(stdout,"we passed the save\n");
     free(C);
     free(B);
     free(A);
