@@ -1,0 +1,10 @@
+Create matrix: 
+    run "make matrix"
+    Then run "./matrixgen -s <int_Your_Desired_matrix_size>"
+
+Run program:
+    run "make"
+    Then run "./lab1_IO <int_Your_Desired_Num_threads>"
+
+Results will be printed to data_output
+
