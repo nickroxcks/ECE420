@@ -30,14 +30,14 @@ void* client_side(void *descriptor){
     ClientRequest request;
 
     read(client_fd,buffer,COM_BUFF_SIZE);
-    
+
     GET_TIME(start);
     
     ParseMsg(buffer,&request);
 
     if(request.is_read){
         pthread_mutex_lock(&array_lock);
-        getContent(buffer,request.pos,server_array);
+        getContent(buffer_out,request.pos,server_array);
         pthread_mutex_unlock(&array_lock);
     }
 
@@ -74,7 +74,7 @@ void start_server(){
     int serverFileDescriptor=socket(AF_INET,SOCK_STREAM,0);
     int clientFileDescriptor;
     int i;
-    pthread_t t[COM_NUM_REQUEST];
+    //pthread_t t[COM_NUM_REQUEST];
 
     sock_var.sin_addr.s_addr=inet_addr(server_ipadress);
     sock_var.sin_port=server_port;
@@ -105,12 +105,12 @@ void start_server(){
         {
             clientFileDescriptor=accept(serverFileDescriptor,NULL,NULL);
             //printf("Connected to client %d\n",clientFileDescriptor);
-            pthread_create(&t[i],NULL,client_side,(void *)(long)clientFileDescriptor);
+            pthread_create(&threads_id[i],NULL,client_side,(void *)(long)clientFileDescriptor);
         }
 
         //wait to finish
         for(i = 0;i<COM_NUM_REQUEST;i++){
-            pthread_join(t[i],NULL);
+            pthread_join(threads_id[i],NULL);
         }
 
         //write to file output
