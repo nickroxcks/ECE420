@@ -1,6 +1,3 @@
-/*
-Implimentation: One mutex for the entire array.
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -13,134 +10,148 @@ Implimentation: One mutex for the entire array.
 #include "common.h"
 #include "timer.h"
 
-int array_size, server_port, server_file_descriptor;
-double times_array[COM_NUM_REQUEST];
-int time_index = 0;
-char *server_IP;
-char **theArray;
-pthread_t thread_ids[COM_NUM_REQUEST];
-pthread_mutex_t lock_whole_array;
+int array_size;
+int server_port;
+char *server_ipadress;
+char **server_array;
+double array_of_times[COM_NUM_REQUEST];  //to store time for each request
+int index_time = 0;
+
+pthread_t threads_id[COM_NUM_REQUEST];
+pthread_mutex_t *element_in_array_lock;
 pthread_mutex_t time_lock;
 
-void setup_socket(){
-    struct sockaddr_in sock_var;
-    server_file_descriptor = socket(AF_INET,SOCK_STREAM,0);
-    sock_var.sin_addr.s_addr = inet_addr(server_IP);
-    sock_var.sin_port = server_port;
-    sock_var.sin_family = AF_INET;
-
-    // force bind
-    int options = 1;
-    if (setsockopt(server_file_descriptor, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &options, sizeof(options)) < 0){
-        perror("Socket Bind Settings Failed\n");
-        exit(0);
-    }
-
-
-    if (bind(server_file_descriptor, (struct sockaddr*) &sock_var, sizeof(sock_var)) < 0){
-        perror("Socket Bind Failed\n");
-        exit(0);
-    }
-
-    if (listen(server_file_descriptor, COM_NUM_REQUEST) < 0){
-        perror("Socket Bind Failed\n");
-        exit(0);
-    }
-
-}
-
-
-void* handle_client(void *fd){
-    int client_file_descriptor = (int) (long) fd;
+void* client_side(void *descriptor){
+    int client_fd = (int) (long) descriptor;  //This cast is to remove warnings
+    char buffer[COM_BUFF_SIZE];
+    char buffer_out[COM_BUFF_SIZE];
+    double start;
+    double end;
     ClientRequest request;
-    double start, end;
-    char input_buffer[COM_BUFF_SIZE];
-    char output_buffer[COM_BUFF_SIZE];
+
+    read(client_fd,buffer,COM_BUFF_SIZE);
     
-    read(client_file_descriptor, input_buffer, COM_BUFF_SIZE);
-    //start
-    GET_TIME(start);   
+    GET_TIME(start);
+    
+    ParseMsg(buffer,&request);
 
-    ParseMsg(input_buffer, &request);
-
-
-    if (request.is_read){
-        pthread_mutex_lock(&lock_whole_array);
-        getContent(output_buffer, request.pos, theArray);
-        pthread_mutex_unlock(&lock_whole_array);
+    if(request.is_read){
+        pthread_mutex_lock(&element_in_array_lock[request.pos]);
+        getContent(buffer_out,request.pos,server_array);
+        pthread_mutex_unlock(&element_in_array_lock[request.pos]);
     }
+
     else{
-        pthread_mutex_lock(&lock_whole_array);
-        setContent(request.msg, request.pos, theArray);
-        pthread_mutex_unlock(&lock_whole_array);
+        pthread_mutex_lock(&element_in_array_lock[request.pos]);
+        setContent(request.msg,request.pos,server_array);
+        pthread_mutex_unlock(&element_in_array_lock[request.pos]);
     }
 
-    //end
     GET_TIME(end);
-    
-    if (request.is_read){
-        write(client_file_descriptor, output_buffer, COM_BUFF_SIZE);
+
+    if(request.is_read){
+        write(client_fd,buffer_out,COM_BUFF_SIZE);
     }
     else{
-        write(client_file_descriptor, request.msg, COM_BUFF_SIZE);
+        write(client_fd,request.msg,COM_BUFF_SIZE);
     }
 
-    close(client_file_descriptor);
+    close(client_fd);
 
     pthread_mutex_lock(&time_lock);
-    times_array[time_index] = end - start;
-    time_index++;
-    time_index %= COM_NUM_REQUEST;
+    array_of_times[index_time] = end - start;
+    index_time++;
+    index_time %= COM_NUM_REQUEST;  //saftey net just in case
     pthread_mutex_unlock(&time_lock);
+
     pthread_exit(0);
+
 }
 
+void start_server(){
+    
+    struct sockaddr_in sock_var;
+    int serverFileDescriptor=socket(AF_INET,SOCK_STREAM,0);
+    int clientFileDescriptor;
+    int i;
+    
 
-void run_server(){
-    int i, client_file_descriptor;
-    while(1){
-       for (i = 0; i < COM_NUM_REQUEST; i++){
-            client_file_descriptor = accept(server_file_descriptor, NULL, NULL);
-            if (client_file_descriptor < 0){
-                perror("Accept failed\n");
-                exit(0);
-            }
-
-            pthread_create(&thread_ids[i], NULL, handle_client, (void*) (long) client_file_descriptor);
-        }
-
-        for (i = 0; i < COM_NUM_REQUEST; i++){
-            pthread_join(thread_ids[i], NULL);
-        }
-
-        saveTimes(times_array, COM_NUM_REQUEST);
-    }
-}
-
-int main(int argc, char* argv[]){
-    if (argc != 4){
-        printf("Invalid number of arguments.\nArguments should be: Size of array, Server IP, Server port.\n");
+    sock_var.sin_addr.s_addr=inet_addr(server_ipadress);
+    sock_var.sin_port=server_port;
+    sock_var.sin_family=AF_INET;
+    
+    int options;
+    if (setsockopt(serverFileDescriptor, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &options, sizeof(options)) < 0){
+        perror("Socket Bind Failed\n");
         exit(0);
     }
-    array_size = atoi(argv[1]);
-    server_IP = argv[2];
-    server_port = atoi(argv[3]);
 
-    pthread_mutex_init(&lock_whole_array, NULL);
+
+    if (bind(serverFileDescriptor, (struct sockaddr*) &sock_var, sizeof(sock_var)) < 0){
+        perror("Bind Failed\n");
+        exit(0);
+    }
+
+    if (listen(serverFileDescriptor, COM_NUM_REQUEST) < 0){
+        perror("Bind listen Failed\n");
+        exit(0);
+    }
+
+    printf("socket has been created\n");
+
+    while(1)        //loop infinity
+    {
+        for(i=0;i<COM_NUM_REQUEST;i++)      //can support many clients at a time
+        {
+            clientFileDescriptor=accept(serverFileDescriptor,NULL,NULL);
+            //printf("Connected to client %d\n",clientFileDescriptor);
+            pthread_create(&threads_id[i],NULL,client_side,(void *)(long)clientFileDescriptor);
+        }
+
+        //wait to finish
+        for(i = 0;i<COM_NUM_REQUEST;i++){
+            pthread_join(threads_id[i],NULL);
+        }
+
+        //write to file output
+        saveTimes(array_of_times,COM_NUM_REQUEST);
+    }
+    close(serverFileDescriptor);
+}
+
+int main(int argc, char* argv[])
+{
+    printf("DO WE START\n");
+    if(argc != 4){
+        printf("please enter in the format <array_size> <ip> <port>\n");
+        return 0;
+    }
+    printf("write number of params\n");
+    //initializations
+    array_size = atoi(argv[1]);
+    server_ipadress = argv[2];
+    server_port = atoi(argv[3]);
+    int i;
+
+    element_in_array_lock = malloc(array_size * sizeof(pthread_mutex_t));
+    for(i=0;i< array_size;i++){
+    pthread_mutex_init(&element_in_array_lock[i], NULL);
+    }
+
     pthread_mutex_init(&time_lock, NULL);
 
-    int i;
-    theArray = malloc(array_size * sizeof(char *));
+    server_array= malloc(array_size * sizeof(char *));
+
+    printf("alocated memory\n");
     for (i = 0; i < array_size; i++){
-        theArray[i] = malloc(COM_BUFF_SIZE * sizeof(char));
+        server_array[i] = malloc(COM_BUFF_SIZE * sizeof(char));
     }
-
+    printf("Does it break");
     for (i = 0; i < array_size; i++){
-        sprintf(theArray[i], "String %d: the initial value", i);
+        sprintf(server_array[i], "String %d: the initial value", i);
     }
+    printf("anout to start\n");
+    start_server();
 
-    setup_socket();
-
-    run_server();
-
+    return 0;
 }
