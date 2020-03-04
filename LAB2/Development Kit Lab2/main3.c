@@ -38,12 +38,14 @@ void* client_side(void *descriptor){
     ParseMsg(buffer,&request);
 
     if(request.is_read){
+        //printf("read request to pos: %d\n",request.pos);
         pthread_rwlock_rdlock(&read_write_lock);
         getContent(buffer_out,request.pos,server_array);
         pthread_rwlock_unlock(&read_write_lock);
     }
 
     else{
+        //printf("write request with the message: %s\n",request.msg);
         pthread_rwlock_wrlock(&read_write_lock);
         setContent(request.msg,request.pos,server_array);
         pthread_rwlock_unlock(&read_write_lock);
@@ -136,16 +138,13 @@ int main(int argc, char* argv[])
 
     server_array= malloc(array_size * sizeof(char *));
 
-    printf("alocated memory\n");
     int i;
     for (i = 0; i < array_size; i++){
         server_array[i] = malloc(COM_BUFF_SIZE * sizeof(char));
     }
-    printf("Does it break");
     for (i = 0; i < array_size; i++){
         sprintf(server_array[i], "String %d: the initial value", i);
     }
-    printf("anout to start\n");
     start_server();
 
     return 0;

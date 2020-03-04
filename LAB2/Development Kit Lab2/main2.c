@@ -1,3 +1,4 @@
+//one mutex for each element
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -142,15 +143,12 @@ int main(int argc, char* argv[])
 
     server_array= malloc(array_size * sizeof(char *));
 
-    printf("alocated memory\n");
     for (i = 0; i < array_size; i++){
         server_array[i] = malloc(COM_BUFF_SIZE * sizeof(char));
     }
-    printf("Does it break");
     for (i = 0; i < array_size; i++){
         sprintf(server_array[i], "String %d: the initial value", i);
     }
-    printf("anout to start\n");
     start_server();
 
     return 0;
