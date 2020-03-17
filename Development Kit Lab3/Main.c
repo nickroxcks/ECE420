@@ -26,4 +26,5 @@ int main(int argc, char* argv[]){
     num_threads = atoi(argv[1]);
 
     gaussjordenelim();
+    return 0;
 }
