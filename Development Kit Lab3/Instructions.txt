@@ -1,0 +1,11 @@
+How to compile program:
+
+-First run the command "make datagen"
+-Then run ./datagen -s <desired_matrix_size>
+-Then run "make"
+-And finally, run ./main <desired_num_threads>
+
+How to clean program:
+
+-Run "make clean"
+
