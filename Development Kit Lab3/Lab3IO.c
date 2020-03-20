@@ -66,6 +66,7 @@ int Lab3SaveOutput(double* x, int size, double Time){
 */
 
     FILE* op;
+    FILE* opTime;
     int i;
 
     if ((op = fopen("data_output","w")) == NULL){
@@ -78,6 +79,10 @@ int Lab3SaveOutput(double* x, int size, double Time){
         fprintf(op, "%e\t", x[i]);
     fprintf(op, "\n%lf", Time);
     fclose(op);
+
+    opTime = fopen("Results_Time","a");
+    fprintf(opTime,"\n%lf",Time);
+    fclose(opTime);
     return 0;
 }
  

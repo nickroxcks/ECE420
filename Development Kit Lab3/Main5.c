@@ -1,4 +1,4 @@
-//Guided implementation
+//Static implementation
 #include<stdio.h>
 #include<stdlib.h>
 #include<omp.h>
@@ -54,7 +54,7 @@ void gauss_elim(){
                 }      
             }
             //Begin elimination portion
-                #pragma omp for schedule(guided)
+            #pragma omp for
                 for(i = cur_row + 1;i < num_rows;i++){
                     temp = Matrix[i][cur_row] / Matrix[cur_row][cur_row];
                     for(j = cur_row; j < num_columns;j++){
@@ -66,7 +66,7 @@ void gauss_elim(){
         int cur_row;
         int row_section;
         for(cur_row = num_rows-1;cur_row>0;cur_row--){
-            #pragma omp for schedule(guided)
+            #pragma omp for
             for(row_section = 0;row_section<cur_row;row_section++){
                 Matrix[row_section][num_columns-1] = Matrix[row_section][num_columns-1] - 
                 (Matrix[row_section][cur_row] / Matrix[cur_row][cur_row] * Matrix[cur_row][num_columns-1]);
