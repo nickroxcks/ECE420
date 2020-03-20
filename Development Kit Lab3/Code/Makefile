@@ -1,3 +1,10 @@
+All:
+	gcc datagen.c Lab3IO.c -o datagen
+	gcc Main.c Lab3IO.c -o  main -lm
+	gcc Main2.c Lab3IO.c -o main2 -lm -fopenmp
+	gcc Main3.c Lab3IO.c -o main3 -lm -fopenmp
+	gcc Main4.c Lab3IO.c -o main4 -lm -fopenmp
+	gcc Main5.c Lab3IO.c -o main5 -lm -fopenmp
 Main:
 	gcc Main.c Lab3IO.c -o  main -lm
 Main2:

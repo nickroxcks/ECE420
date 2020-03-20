@@ -5,18 +5,14 @@
 int Lab3LoadInput(double ***A, int *size){
 /*
     Allocate memory and load the input data for Lab 3. The returned matrix is the augmented size by (size+1) matrix [A|b]
-
     -----
     Input:
     int ***A    pointer to the augmented matrix [A|b]
     int *size   pointer to the rows of the augmented matrix [A|b]. (Number of columns will be 1 more)
-
     Note: original files should be the output of the datagen.c with name "data_input" in the same folder
-
     -----
     Output:
     Generated matrix will be passed back to the array *A, along with the matrix size in *size 
-
     -----
     Example:
     An integer array pointer and a integer should be defined before calling this function:
@@ -49,7 +45,6 @@ int Lab3LoadInput(double ***A, int *size){
 int Lab3SaveOutput(double* x, int size, double Time){
 /*
     Save the data to the file for Lab 3 
-
     -----
     Input:
     double* x     pointer to the result vector 
@@ -59,14 +54,12 @@ int Lab3SaveOutput(double* x, int size, double Time){
     -----
     Output:
     data_output the stored data
-
     -----
     Example:
     Lab3SaveOutput(x, size, Time);
 */
 
     FILE* op;
-    FILE* opTime;
     int i;
 
     if ((op = fopen("data_output","w")) == NULL){
@@ -79,10 +72,6 @@ int Lab3SaveOutput(double* x, int size, double Time){
         fprintf(op, "%e\t", x[i]);
     fprintf(op, "\n%lf", Time);
     fclose(op);
-
-    opTime = fopen("Results_Time","a");
-    fprintf(opTime,"\n%lf",Time);
-    fclose(opTime);
     return 0;
 }
  

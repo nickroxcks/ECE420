@@ -85,6 +85,7 @@ int main(int argc, char* argv[]){
 
     // initiallization
     thread_count = atoi(argv[1]);
+    //printf("running main3 with %d threads\n",thread_count);
     Lab3LoadInput(&Matrix,&size);
     num_rows = size;
     out_vec = CreateVec(num_rows);
