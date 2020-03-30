@@ -18,12 +18,15 @@ int main(int argc, char* argv[]){
     struct node *nodehead;
     int nodecount;
     double *r, *r_pre, *contribution;
+    double *local_r, *local_cont;
     int i,j;
     double damp_constant;
     int iterationcount = 0;
     double start ,end;
     FILE *fp, *ip;
     int numprocesses, myrank;
+    int chunksize;
+    int chunkstart, chunkend;
 
     // Load the data and simple verification
     
@@ -41,34 +44,46 @@ int main(int argc, char* argv[]){
 
     if (node_init(&nodehead, 0, nodecount)) return 254;
     // initialize variables
+    chunksize = (int)nodecount/numprocesses;
     r = malloc(nodecount * sizeof(double));
     r_pre = malloc(nodecount * sizeof(double));
+    local_r = malloc(nodecount * sizeof(double));
+    
     for ( i = 0; i < nodecount; ++i)
         r[i] = 1.0 / nodecount;
 
     contribution = malloc(nodecount * sizeof(double));
+    local_cont = malloc(nodecount * sizeof(double));
     for ( i = 0; i < nodecount; ++i)
         contribution[i] = r[i] / nodehead[i].num_out_links * DAMPING_FACTOR;
     damp_constant = (1.0 - DAMPING_FACTOR) / nodecount;
 
-    
+
     // CORE CALCULATION
     GET_TIME(start);
+
     do{
         ++iterationcount;
         vec_cp(r, r_pre, nodecount);
         // update the value
-        for ( i = 0; i < nodecount; ++i){
+
+        chunkstart = chunksize*myrank;
+        chunkend = chunksize*(myrank+1)-1;
+        for ( i = chunkstart; i <= chunkend && i < nodecount; ++i){
             r[i] = 0;
             for ( j = 0; j < nodehead[i].num_in_links; ++j)
                 r[i] += contribution[nodehead[i].inlinks[j]];
             r[i] += damp_constant;
         }
         // update and broadcast the contribution
-        for ( i=0; i<nodecount; ++i){
+        for ( i=chunkstart; i<=chunkend && i < nodecount; ++i){
             contribution[i] = r[i] / nodehead[i].num_out_links * DAMPING_FACTOR;
         }
 
+        vec_cp(&r[chunkstart],local_r,chunksize);
+        vec_cp(&contribution[chunkstart],local_cont,chunksize);
+        MPI_Allgather(local_r,chunksize,MPI_DOUBLE,r,chunksize,MPI_DOUBLE,MPI_COMM_WORLD);
+        MPI_Allgather(local_cont,chunksize,MPI_DOUBLE,contribution,chunksize,MPI_DOUBLE,MPI_COMM_WORLD);
 
 
     }while(rel_error(r, r_pre, nodecount) >= EPSILON);
