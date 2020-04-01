@@ -35,12 +35,14 @@ int main(int argc, char* argv[]){
     // initialize variables
     r = malloc(nodecount * sizeof(double));
     r_pre = malloc(nodecount * sizeof(double));
+
+    //ri(0) = 1/N for all i's
     for ( i = 0; i < nodecount; ++i)
         r[i] = 1.0 / nodecount;
     contribution = malloc(nodecount * sizeof(double));
     for ( i = 0; i < nodecount; ++i)
         contribution[i] = r[i] / nodehead[i].num_out_links * DAMPING_FACTOR;
-    damp_constant = (1.0 - DAMPING_FACTOR) / nodecount;
+    damp_constant = (1.0 - DAMPING_FACTOR) / nodecount;  //make it easier for calculation
     // CORE CALCULATION
     GET_TIME(start);
     do{

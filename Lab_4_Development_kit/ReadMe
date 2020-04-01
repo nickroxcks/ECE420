@@ -20,5 +20,13 @@ Overview:
     Verification program:
     serialtester.c source file for the testing program, depending on the Lab4IO.c
 =====
+Running the program:
+
+    Run "make"
+    generate the data by running "./datatrim -b <your_desired_size>"
+    Run "./main1" for serial program
+    Run "mpirun -np <num_process> ./main2" for parrellel program
+
+=====
 Please also find the detailed instructions in the comments of the individual files.
 Web Graph data is from http://snap.stanford.edu/data/web-Stanford.html
