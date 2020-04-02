@@ -98,7 +98,8 @@ int main(int argc, char* argv[]){
     MPI_Finalize();
     //ensure this is called once
     if(curr_rank == 0){
-    printf("Program converged at %d th iteration.\nElapsed time %f.\n", iterationcount, end-start);
+    //printf("Program converged at %d th iteration.\nElapsed time %f.\n", iterationcount, end-start);
+    printf("%lf\n",end-start);
     Lab4_saveoutput(r,nodecount,end-start);
     // post processing
     node_destroy(nodehead, nodecount);

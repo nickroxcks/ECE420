@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
     }while(rel_error(r, r_pre, nodecount) >= EPSILON);
     GET_TIME(end);
 
-    printf("Program converged at %d th iteration.\nElapsed time %f.\n", iterationcount, end-start);
+    printf("%lf\n",end-start);
     Lab4_saveoutput(r,nodecount,end-start);
     // post processing
     node_destroy(nodehead, nodecount);
