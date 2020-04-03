@@ -1,6 +1,6 @@
 How to compile program:
 
--Run "make All" to generate all executables
+-Run "make all" to generate all executables
 
 -Then generate data by going: ./datatrim
 
