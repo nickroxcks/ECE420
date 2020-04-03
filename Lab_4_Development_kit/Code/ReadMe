@@ -22,8 +22,8 @@ Overview:
 =====
 Running the program:
 
-    Run "make"
-    generate the data by running "./datatrim -b <your_desired_size>"
+    Run "make" to compile all programs
+    Generate the data by running "./datatrim -b <your_desired_size>"
     Run "./main1" for serial program
     Run "mpirun -np <num_process> ./main2" for parrellel program
 
